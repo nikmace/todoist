@@ -7,17 +7,17 @@ import moment from 'moment';
 
 export const useTasks = selectedProject => {
     const [tasks, setTasks] = useState([]);
-    const [archivedTasks, setarchivedTasks] = useState([]);
+    const [archivedTasks, setArchivedTasks] = useState([]);
     //users, setUsers
     //cats, setCats
     useEffect(() => {
-        const unsubcribe = firebase
+        let unsubcribe = firebase
         .firestore()
         .collection('tasks')
         .where('usrId', '==', 'jilIFXIwyAL3tzHMtzRbw');
 
-        unsubcribe = selectedProject && !collatedTasksExist(selectedProject) ? 
-        (unsubcribe = unsubcribe.where('projectId', '==', selectedProject))
+        unsubcribe = selectedProject && !collatedTasksExist(selectedProject) 
+        ? (unsubcribe = unsubcribe.where('projectId', '==', selectedProject))
         : selectedProject === 'TODAY'
         ? (unsubcribe = unsubcribe.where(
             'date',
@@ -59,5 +59,22 @@ export const useProjects = () => {
 
     useEffect(() => {
         firebase
-    },[]);
-}
+        .firestore()
+        .collection('projects')
+        .where('userId', '==', 'jilIFXIwyAL3tzHMtzRbw')
+        .orderBy('projectId')
+        .get()
+        .then(snapshot => {
+            const allProjects = snapshot.docs.map(project => ({
+                ...project.data(),
+                docId: project.id,
+            }));
+
+            if (JSON.stringify(allProjects !== JSON.stringify(projects))) {
+                setProjects(allProjects);
+            }
+        });
+    },[projects]);
+
+    return { projects, setProjects };
+};
